@@ -7,17 +7,21 @@ import (
 	"github.com/rivo/tview"
 )
 
+func clickedMessageFn(msg string) func(*tmenu.MenuItem) {
+	return func(*tmenu.MenuItem) { log.Printf("%v clicked\n", msg) }
+}
+
 func main() {
 	fileMenu := tmenu.NewMenuItem("File")
-	fileMenu.AddItem(tmenu.NewMenuItem("New File").SetOnClick(func(*tmenu.MenuItem) { log.Println("New file was clicked!") }))
-	fileMenu.AddItem(tmenu.NewMenuItem("Open File"))
-	fileMenu.AddItem(tmenu.NewMenuItem("Save File"))
-	fileMenu.AddItem(tmenu.NewMenuItem("Close File"))
-	fileMenu.AddItem(tmenu.NewMenuItem("Exit"))
+	fileMenu.AddItem(tmenu.NewMenuItem("New File").SetOnClick(clickedMessageFn("New File")))
+	fileMenu.AddItem(tmenu.NewMenuItem("Open File").SetOnClick(clickedMessageFn("Open File")))
+	fileMenu.AddItem(tmenu.NewMenuItem("Save File").SetOnClick(clickedMessageFn("Save File")))
+	fileMenu.AddItem(tmenu.NewMenuItem("Close File").SetOnClick(clickedMessageFn("Close File")))
+	fileMenu.AddItem(tmenu.NewMenuItem("Exit").SetOnClick(clickedMessageFn("Exit")))
 	editMenu := tmenu.NewMenuItem("Edit")
-	editMenu.AddItem(tmenu.NewMenuItem("Copy"))
-	editMenu.AddItem(tmenu.NewMenuItem("Cut"))
-	editMenu.AddItem(tmenu.NewMenuItem("Paste"))
+	editMenu.AddItem(tmenu.NewMenuItem("Copy").SetOnClick(clickedMessageFn("Copy")))
+	editMenu.AddItem(tmenu.NewMenuItem("Cut").SetOnClick(clickedMessageFn("Cut")))
+	editMenu.AddItem(tmenu.NewMenuItem("Paste").SetOnClick(clickedMessageFn("Paste")))
 
 	menuBar := tmenu.NewMenuBar().
 		AddItem(fileMenu).

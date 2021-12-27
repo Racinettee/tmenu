@@ -151,6 +151,7 @@ func (p *MenuBar) MouseHandler() func(action tview.MouseAction, event *tcell.Eve
 		if p.subMenu != nil {
 			consumed, capture = p.subMenu.MouseHandler()(action, event, setFocus)
 			if consumed {
+				p.subMenu = nil
 				return
 			}
 		}
