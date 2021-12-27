@@ -1,8 +1,6 @@
 package tmenu
 
 import (
-	"log"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -11,6 +9,7 @@ type MenuItem struct {
 	*tview.Box
 	Title    string
 	SubItems []*MenuItem
+	onClick  func(*MenuItem)
 }
 
 func NewMenuItem(title string) *MenuItem {
@@ -23,6 +22,11 @@ func NewMenuItem(title string) *MenuItem {
 
 func (menuItem *MenuItem) AddItem(item *MenuItem) *MenuItem {
 	menuItem.SubItems = append(menuItem.SubItems, item)
+	return menuItem
+}
+
+func (menuItem *MenuItem) SetOnClick(fn func(*MenuItem)) *MenuItem {
+	menuItem.onClick = fn
 	return menuItem
 }
 
@@ -48,13 +52,36 @@ func NewSubMenu(items []*MenuItem) *SubMenu {
 }
 
 func (subMenu *SubMenu) Draw(screen tcell.Screen) {
-	log.Println("Printing the sub menu")
 	subMenu.Box.DrawForSubclass(screen, subMenu)
 	x, y, _, _ := subMenu.GetInnerRect()
 
 	for i, item := range subMenu.Items {
 		tview.PrintSimple(screen, item.Title, x, y+i)
 	}
+}
+
+func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
+	return subMenu.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
+		_, rectY, _, _ := subMenu.Box.GetInnerRect()
+		if !subMenu.Box.InRect(event.Position()) {
+			return false, nil
+		}
+
+		if action == tview.MouseLeftClick {
+			setFocus(subMenu)
+			_, y := event.Position()
+			index := y - rectY
+			if index >= 0 && index < len(subMenu.Items) {
+				handler := subMenu.Items[index].onClick
+				if handler != nil {
+					handler(subMenu.Items[index])
+				}
+				consumed = true
+			}
+		}
+
+		return
+	})
 }
 
 type MenuBar struct {
@@ -121,6 +148,12 @@ func (menuBar *MenuBar) InputHandler() func(event *tcell.EventKey, setFocus func
 
 func (p *MenuBar) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
 	return p.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
+		if p.subMenu != nil {
+			consumed, capture = p.subMenu.MouseHandler()(action, event, setFocus)
+			if consumed {
+				return
+			}
+		}
 		if !p.InRect(event.Position()) {
 			return false, nil
 		}
