@@ -50,10 +50,10 @@ func NewSubMenu(items []*MenuItem) *SubMenu {
 func (subMenu *SubMenu) Draw(screen tcell.Screen) {
 	log.Println("Printing the sub menu")
 	subMenu.Box.DrawForSubclass(screen, subMenu)
-	_, y, _, _ := subMenu.GetInnerRect()
+	x, y, _, _ := subMenu.GetInnerRect()
 
-	for _, item := range subMenu.Items {
-		tview.PrintSimple(screen, item.Title, 1, 0+y) //x, y+i)
+	for i, item := range subMenu.Items {
+		tview.PrintSimple(screen, item.Title, x, y+i)
 	}
 }
 
@@ -100,9 +100,6 @@ func (menuBar *MenuBar) Draw(screen tcell.Screen) {
 		mi.Draw(screen)
 		menuItemOffset += itemLen + 1
 	}
-	if menuBar.subMenu != nil {
-		//	menuBar.subMenu.Draw(screen)
-	}
 }
 
 func (menuBar *MenuBar) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
@@ -123,17 +120,14 @@ func (menuBar *MenuBar) InputHandler() func(event *tcell.EventKey, setFocus func
 }
 
 func (p *MenuBar) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
-	//log.Println("Mouse handler called")
 	return p.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
 		if !p.InRect(event.Position()) {
 			return false, nil
 		}
-		//log.Println("Mouse captured in the menu bar")
 		// Pass mouse events down.
 		for _, item := range p.MenuItems {
 			consumed, capture = item.MouseHandler()(action, event, setFocus)
 			if consumed {
-				//log.Println("Mouse captured by a menu item")
 				p.subMenu = NewSubMenu(item.SubItems)
 				x, y, _, _ := item.GetRect()
 				p.subMenu.Box.SetRect(x+1, y+1, 15, 10)
