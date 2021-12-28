@@ -40,6 +40,7 @@ type SubMenu struct {
 	*tview.Box
 	Items         []*MenuItem
 	parent        *MenuBar
+	childMenu     *SubMenu
 	currentSelect int
 }
 
@@ -64,11 +65,22 @@ func (subMenu *SubMenu) Draw(screen tcell.Screen) {
 		}
 		tview.PrintSimple(screen, item.Title, x, y+i)
 	}
+	if subMenu.childMenu != nil {
+		subMenu.childMenu.Draw(screen)
+	}
 }
 
 func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
 	return subMenu.WrapMouseHandler(func(action tview.MouseAction, event *tcell.EventMouse, setFocus func(p tview.Primitive)) (consumed bool, capture tview.Primitive) {
-		_, rectY, _, _ := subMenu.Box.GetInnerRect()
+		if subMenu.childMenu != nil {
+			consumed, capture = subMenu.childMenu.MouseHandler()(action, event, setFocus)
+
+			if consumed {
+				//subMenu.parent.subMenu = nil
+				return
+			}
+		}
+		_, rectY, rectW, _ := subMenu.Box.GetInnerRect()
 		if !subMenu.Box.InRect(event.Position()) {
 			return false, nil
 		}
@@ -84,6 +96,11 @@ func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tce
 				handler := subMenu.Items[index].onClick
 				if handler != nil {
 					handler(subMenu.Items[index])
+				}
+				if len(subMenu.Items[index].SubItems) > 0 {
+					subMenu.childMenu = NewSubMenu(subMenu.parent, subMenu.Items[index].SubItems)
+					subMenu.childMenu.SetRect(rectW, y, 15, 10)
+					return
 				}
 			}
 			subMenu.parent.subMenu = nil

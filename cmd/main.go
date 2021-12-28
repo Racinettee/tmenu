@@ -17,7 +17,15 @@ func main() {
 	fileMenu := tmenu.NewMenuItem("File")
 	fileMenu.AddItem(tmenu.NewMenuItem("New File").SetOnClick(clickedMessageFn("New File")))
 	fileMenu.AddItem(tmenu.NewMenuItem("Open File").SetOnClick(clickedMessageFn("Open File")))
-	fileMenu.AddItem(tmenu.NewMenuItem("Save File").SetOnClick(clickedMessageFn("Save File")))
+
+	saveSubForReal := tmenu.NewMenuItem("Save For Real").SetOnClick(clickedMessageFn("Save for real"))
+	saveSubForFake := tmenu.NewMenuItem("Save For Fake").SetOnClick(clickedMessageFn("Safe for fake"))
+
+	fileMenu.AddItem(tmenu.NewMenuItem("Save File").
+		// Add submenu items to save
+		AddItem(saveSubForReal).
+		AddItem(saveSubForFake).SetOnClick(clickedMessageFn("Save File")))
+
 	fileMenu.AddItem(tmenu.NewMenuItem("Close File").SetOnClick(clickedMessageFn("Close File")))
 	fileMenu.AddItem(tmenu.NewMenuItem("Exit").SetOnClick(func(*tmenu.MenuItem) { app.Stop() }))
 	editMenu := tmenu.NewMenuItem("Edit")
