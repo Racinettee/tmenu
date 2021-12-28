@@ -38,14 +38,17 @@ func (menuItem *MenuItem) Draw(screen tcell.Screen) {
 
 type SubMenu struct {
 	*tview.Box
-	Items            []*MenuItem
-	offsetX, offsetY int
+	Items         []*MenuItem
+	parent        *MenuBar
+	currentSelect int
 }
 
-func NewSubMenu(items []*MenuItem) *SubMenu {
+func NewSubMenu(parent *MenuBar, items []*MenuItem) *SubMenu {
 	subMenu := &SubMenu{
-		Box:   tview.NewBox(),
-		Items: items,
+		Box:           tview.NewBox(),
+		Items:         items,
+		parent:        parent,
+		currentSelect: -1,
 	}
 	subMenu.SetBorder(true)
 	return subMenu
@@ -54,8 +57,11 @@ func NewSubMenu(items []*MenuItem) *SubMenu {
 func (subMenu *SubMenu) Draw(screen tcell.Screen) {
 	subMenu.Box.DrawForSubclass(screen, subMenu)
 	x, y, _, _ := subMenu.GetInnerRect()
-
 	for i, item := range subMenu.Items {
+		if i == subMenu.currentSelect {
+			tview.Print(screen, item.Title, x, y+i, 15, 0, tcell.ColorBlue)
+			continue
+		}
 		tview.PrintSimple(screen, item.Title, x, y+i)
 	}
 }
@@ -66,20 +72,22 @@ func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tce
 		if !subMenu.Box.InRect(event.Position()) {
 			return false, nil
 		}
+		_, y := event.Position()
+		index := y - rectY
+
+		subMenu.currentSelect = index
+		consumed = true
 
 		if action == tview.MouseLeftClick {
 			setFocus(subMenu)
-			_, y := event.Position()
-			index := y - rectY
 			if index >= 0 && index < len(subMenu.Items) {
 				handler := subMenu.Items[index].onClick
 				if handler != nil {
 					handler(subMenu.Items[index])
 				}
-				consumed = true
 			}
+			subMenu.parent.subMenu = nil
 		}
-
 		return
 	})
 }
@@ -151,7 +159,7 @@ func (p *MenuBar) MouseHandler() func(action tview.MouseAction, event *tcell.Eve
 		if p.subMenu != nil {
 			consumed, capture = p.subMenu.MouseHandler()(action, event, setFocus)
 			if consumed {
-				p.subMenu = nil
+				//p.subMenu = nil
 				return
 			}
 		}
@@ -162,7 +170,7 @@ func (p *MenuBar) MouseHandler() func(action tview.MouseAction, event *tcell.Eve
 		for _, item := range p.MenuItems {
 			consumed, capture = item.MouseHandler()(action, event, setFocus)
 			if consumed {
-				p.subMenu = NewSubMenu(item.SubItems)
+				p.subMenu = NewSubMenu(p, item.SubItems)
 				x, y, _, _ := item.GetRect()
 				p.subMenu.Box.SetRect(x+1, y+1, 15, 10)
 				return
