@@ -56,14 +56,39 @@ func NewSubMenu(parent *MenuBar, items []*MenuItem) *SubMenu {
 }
 
 func (subMenu *SubMenu) Draw(screen tcell.Screen) {
+	anySubItems := false
+	maxWidth := 0
+	for _, item := range subMenu.Items {
+		if itemTitleLen := len(item.Title); itemTitleLen > maxWidth {
+			maxWidth = itemTitleLen
+		}
+		if len(item.SubItems) > 0 {
+			anySubItems = true
+		}
+	}
+
+	rectX, rectY, _, _ := subMenu.GetRect()
+	rectWid := maxWidth
+	if anySubItems {
+		rectWid += 1
+	}
+	rectHig := len(subMenu.Items)
+	subMenu.SetRect(rectX, rectY, rectWid+2, rectHig+2)
 	subMenu.Box.DrawForSubclass(screen, subMenu)
+
 	x, y, _, _ := subMenu.GetInnerRect()
 	for i, item := range subMenu.Items {
 		if i == subMenu.currentSelect {
 			tview.Print(screen, item.Title, x, y+i, 15, 0, tcell.ColorBlue)
+			if len(item.SubItems) > 0 {
+				tview.Print(screen, ">", x+len(item.Title)+1, y+i, 15, 0, tcell.ColorBlue)
+			}
 			continue
 		}
 		tview.PrintSimple(screen, item.Title, x, y+i)
+		if len(item.SubItems) > 0 {
+			tview.PrintSimple(screen, ">", x+len(item.Title)+1, y+i)
+		}
 	}
 	if subMenu.childMenu != nil {
 		subMenu.childMenu.Draw(screen)
@@ -99,7 +124,7 @@ func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tce
 				}
 				if len(subMenu.Items[index].SubItems) > 0 {
 					subMenu.childMenu = NewSubMenu(subMenu.parent, subMenu.Items[index].SubItems)
-					subMenu.childMenu.SetRect(rectW, y, 15, 10)
+					subMenu.childMenu.SetRect(rectW+3, y, 15, 10)
 					return
 				}
 			}
@@ -206,4 +231,14 @@ func (menuBar *MenuBar) Focus(delegate func(p tview.Primitive)) {
 		menuBar.Box.Focus(delegate)
 		menuBar.subMenu = nil
 	}
+}
+
+func longestSubItemLen(items []*MenuItem) int {
+	length := 0
+	for _, item := range items {
+		if newLen := len(item.Title); newLen > length {
+			length = newLen
+		}
+	}
+	return length
 }
