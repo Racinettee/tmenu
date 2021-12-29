@@ -73,6 +73,7 @@ func (subMenu *SubMenu) Draw(screen tcell.Screen) {
 		rectWid += 1
 	}
 	rectHig := len(subMenu.Items)
+	// +2 - add space one space for each side of rect - to fit text inside
 	subMenu.SetRect(rectX, rectY, rectWid+2, rectHig+2)
 	subMenu.Box.DrawForSubclass(screen, subMenu)
 
@@ -231,14 +232,4 @@ func (menuBar *MenuBar) Focus(delegate func(p tview.Primitive)) {
 		menuBar.Box.Focus(delegate)
 		menuBar.subMenu = nil
 	}
-}
-
-func longestSubItemLen(items []*MenuItem) int {
-	length := 0
-	for _, item := range items {
-		if newLen := len(item.Title); newLen > length {
-			length = newLen
-		}
-	}
-	return length
 }
