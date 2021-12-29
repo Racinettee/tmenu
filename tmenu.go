@@ -102,12 +102,15 @@ func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tce
 			consumed, capture = subMenu.childMenu.MouseHandler()(action, event, setFocus)
 
 			if consumed {
-				//subMenu.parent.subMenu = nil
 				return
 			}
 		}
 		_, rectY, rectW, _ := subMenu.Box.GetInnerRect()
 		if !subMenu.Box.InRect(event.Position()) {
+			// Close the menu if the user clicks outside the menu box
+			if action == tview.MouseLeftClick {
+				subMenu.parent.subMenu = nil
+			}
 			return false, nil
 		}
 		_, y := event.Position()
@@ -226,10 +229,10 @@ func (p *MenuBar) MouseHandler() func(action tview.MouseAction, event *tcell.Eve
 }
 
 func (menuBar *MenuBar) Focus(delegate func(p tview.Primitive)) {
-	if menuBar.subMenu != nil {
-		delegate(menuBar.subMenu)
-	} else {
-		menuBar.Box.Focus(delegate)
-		menuBar.subMenu = nil
-	}
+	//if menuBar.subMenu != nil {
+	//	delegate(menuBar.subMenu)
+	//} else {
+	menuBar.Box.Focus(delegate)
+	menuBar.subMenu = nil
+	//}
 }
