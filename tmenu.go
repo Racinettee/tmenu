@@ -127,7 +127,6 @@ func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tce
 					handler(subMenu.Items[index])
 				}
 				if len(subMenu.Items[index].SubItems) > 0 {
-					//menuRectX, menuRectY, _, _ := subMenu.GetRect()
 					subMenu.childMenu = NewSubMenu(subMenu.parent, subMenu.Items[index].SubItems)
 					subMenu.childMenu.SetRect(rectX+rectW, y, 15, 10)
 					return
