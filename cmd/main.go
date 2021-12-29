@@ -18,7 +18,9 @@ func main() {
 	fileMenu.AddItem(tmenu.NewMenuItem("New File").SetOnClick(clickedMessageFn("New File")))
 	fileMenu.AddItem(tmenu.NewMenuItem("Open File").SetOnClick(clickedMessageFn("Open File")))
 
-	saveSubForReal := tmenu.NewMenuItem("Save For Real").SetOnClick(clickedMessageFn("Save for real"))
+	saveSubForReal := tmenu.NewMenuItem("Save For Real").
+		AddItem(tmenu.NewMenuItem("For really real").SetOnClick(clickedMessageFn("For really real"))).
+		AddItem(tmenu.NewMenuItem("For really fake").SetOnClick(clickedMessageFn("For really fake")))
 	saveSubForFake := tmenu.NewMenuItem("Save For Fake").SetOnClick(clickedMessageFn("Safe for fake"))
 
 	fileMenu.AddItem(tmenu.NewMenuItem("Save File").

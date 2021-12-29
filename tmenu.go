@@ -80,15 +80,15 @@ func (subMenu *SubMenu) Draw(screen tcell.Screen) {
 	x, y, _, _ := subMenu.GetInnerRect()
 	for i, item := range subMenu.Items {
 		if i == subMenu.currentSelect {
-			tview.Print(screen, item.Title, x, y+i, 15, 0, tcell.ColorBlue)
+			tview.Print(screen, item.Title, x, y+i, 20, 0, tcell.ColorBlue)
 			if len(item.SubItems) > 0 {
-				tview.Print(screen, ">", x+len(item.Title)+1, y+i, 15, 0, tcell.ColorBlue)
+				tview.Print(screen, ">", x+maxWidth, y+i, 20, 0, tcell.ColorBlue)
 			}
 			continue
 		}
 		tview.PrintSimple(screen, item.Title, x, y+i)
 		if len(item.SubItems) > 0 {
-			tview.PrintSimple(screen, ">", x+len(item.Title)+1, y+i)
+			tview.PrintSimple(screen, ">", x+maxWidth, y+i)
 		}
 	}
 	if subMenu.childMenu != nil {
@@ -105,7 +105,7 @@ func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tce
 				return
 			}
 		}
-		_, rectY, rectW, _ := subMenu.Box.GetInnerRect()
+		rectX, rectY, rectW, _ := subMenu.Box.GetInnerRect()
 		if !subMenu.Box.InRect(event.Position()) {
 			// Close the menu if the user clicks outside the menu box
 			if action == tview.MouseLeftClick {
@@ -127,8 +127,9 @@ func (subMenu *SubMenu) MouseHandler() func(action tview.MouseAction, event *tce
 					handler(subMenu.Items[index])
 				}
 				if len(subMenu.Items[index].SubItems) > 0 {
+					//menuRectX, menuRectY, _, _ := subMenu.GetRect()
 					subMenu.childMenu = NewSubMenu(subMenu.parent, subMenu.Items[index].SubItems)
-					subMenu.childMenu.SetRect(rectW+3, y, 15, 10)
+					subMenu.childMenu.SetRect(rectX+rectW, y, 15, 10)
 					return
 				}
 			}
